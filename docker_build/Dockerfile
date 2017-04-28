@@ -65,8 +65,11 @@ RUN echo "America/Sao_Paulo" > /etc/timezone && \
 #7: Nginx Configuration
 COPY ./config/nginx.conf /etc/nginx/nginx.conf
 COPY ./config/nginx-modules.conf /etc/nginx/modules.conf
+COPY ./config/fastcgi_params /etc/nginx/fastcgi_params
 RUN mkdir -p /etc/nginx/sites-enabled/
 COPY ./config/localhost.conf /etc/nginx/sites-enabled/localhost.conf
+# COPY ./config/default.conf /etc/nginx/conf.d/default.conf
+COPY ./config/php.ini /etc/php/7.0/fpm/php.ini
 
 #8: SupervisorD Configuration
 COPY ./config/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
@@ -94,9 +97,10 @@ RUN mkdir -p /run/php &&\
 #     rm /etc/nginx/sites-enabled/default && \
 #     ln -nfs /etc/nginx/sites-available/mercadoinca.conf /etc/nginx/sites-enabled/mercadoinca.conf && \
 RUN mkdir -p /var/www && \
-    usermod -u 1000 www-data && \
+    #usermod -u 1000 www-data && \
     chown -R www-data:www-data /var/www/ && \
-    chmod -R g+s /var/www
+    chmod -R g+s /var/www && \
+    chown -R www-data /run/php/
 
 #10: Setup Home Dir if log on container 
 WORKDIR /var/www/html
