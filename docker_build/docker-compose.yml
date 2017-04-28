@@ -9,3 +9,4 @@ services:
     env_file: ../.env
 #to run
 #docker-compose -f docker-compose.yml up
+#to get shell : docker exec -it dockerbuild_nginx-php_1 bash

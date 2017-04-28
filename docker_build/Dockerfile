@@ -1,5 +1,5 @@
 #
-# Debian with apache and PHP7
+# Debian with nginx and PHP7
 # 
 #
 FROM debian:stable
@@ -68,7 +68,6 @@ COPY ./config/nginx-modules.conf /etc/nginx/modules.conf
 COPY ./config/fastcgi_params /etc/nginx/fastcgi_params
 RUN mkdir -p /etc/nginx/sites-enabled/
 COPY ./config/localhost.conf /etc/nginx/sites-enabled/localhost.conf
-# COPY ./config/default.conf /etc/nginx/conf.d/default.conf
 COPY ./config/php.ini /etc/php/7.0/fpm/php.ini
 
 #8: SupervisorD Configuration
@@ -93,11 +92,7 @@ RUN mkdir -p /run/php &&\
     ln -nfs /etc/php/mods-available/xdebug.ini /etc/php/7.0/fpm/conf.d/20-xdebug.ini && \
     ln -nfs /etc/php/mods-available/xdebug.ini /etc/php/7.0/cli/conf.d/20-xdebug.ini
 
-
-#     rm /etc/nginx/sites-enabled/default && \
-#     ln -nfs /etc/nginx/sites-available/mercadoinca.conf /etc/nginx/sites-enabled/mercadoinca.conf && \
 RUN mkdir -p /var/www && \
-    #usermod -u 1000 www-data && \
     chown -R www-data:www-data /var/www/ && \
     chmod -R g+s /var/www && \
     chown -R www-data /run/php/
@@ -105,12 +100,11 @@ RUN mkdir -p /var/www && \
 #10: Setup Home Dir if log on container 
 WORKDIR /var/www/html
 
+#11: remove the apt lists to reduce image size
+RUN rm -rf /var/lib/apt/lists/*
 
-#12: remove the apt lists to reduce image size
-#RUN rm -rf /var/lib/apt/lists/*
-
-#13: Expose port
+#12: Expose port
 EXPOSE 80
 
-#14: Start SupervisorD with nginx and php-fpm
+#13: Start SupervisorD with nginx and php-fpm
 ENTRYPOINT ["/usr/bin/supervisord"]

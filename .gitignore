@@ -1,0 +1,5 @@
+._.DS_Store
+._README.md
+docker_build/config/._default.conf
+docker_build/config/._fastcgi_params
+docker_build/config/._php.ini
