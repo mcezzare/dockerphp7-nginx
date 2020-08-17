@@ -2,9 +2,9 @@
 # Debian with nginx and PHP7
 # 
 #
-FROM debian:stable
+FROM debian:buster
 
-MAINTAINER Mario Cezzare Angelicola Chiodi <mcezzare@gmail.com>
+LABEL MAINTAINER Mario Cezzare Angelicola Chiodi <mcezzare@gmail.com>
 
 #Suppress messages like "debconf: unable to initialize frontend: Dialog"
 ENV TERM linux
@@ -12,12 +12,12 @@ ENV TERM linux
 ENV DEBIAN_FRONTEND noninteractive
 
 #0 
-RUN apt-get update && apt-get install -y curl wget
+RUN apt-get update && apt-get install -y curl wget gnupg
 RUN apt-get install -y vim
 #1: Initial setup: get nginx
 RUN curl http://nginx.org/keys/nginx_signing.key -o nginx_signing.key
 RUN apt-key add nginx_signing.key
-RUN echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list.d/nginx.list \
+RUN echo "deb http://nginx.org/packages/mainline/debian/ buster nginx" >> /etc/apt/sources.list.d/nginx.list \
     && apt-get update \
     && apt-get install --no-install-recommends --no-install-suggests -y \
                         ca-certificates \
@@ -28,21 +28,21 @@ RUN echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/a
                         nginx-module-perl \
                         nginx-module-njs \
                         gettext-base 
-#2: add dotdeb packages
-RUN apt-get update \
-  && echo 'deb http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list.d/dotdeb.list \
-  && echo 'deb-src http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list.d/dotdeb.list \
-  && wget https://www.dotdeb.org/dotdeb.gpg \
-  && apt-key add dotdeb.gpg \
-  && apt-get update 
+# #2: add dotdeb packages
+# RUN apt-get update \
+#   && echo 'deb http://packages.dotdeb.org buster all' >> /etc/apt/sources.list.d/dotdeb.list \
+#   && echo 'deb-src http://packages.dotdeb.org buster all' >> /etc/apt/sources.list.d/dotdeb.list \
+#   && wget https://www.dotdeb.org/dotdeb.gpg \
+#   && apt-key add dotdeb.gpg \
+#   && apt-get update 
 
 #3: php7 packages, separated command to preserve layers already cached 
-RUN apt-get install -y php7.0-mysql php7.0-mcrypt php7.0-json php7.0-curl \
-php7.0-cli php7.0-gd php7.0-imagick php7.0-xdebug php7.0-opcache php7.0-fpm \
-php7.0-bcmath php7.0-mbstring php7.0-xml php7.0-zip
+RUN apt-get install -y php7.3-mysql php7.3-json php7.3-curl \
+php7.3-cli php7.3-gd php7.3-imagick php7.3-xdebug php7.3-opcache php7.3-fpm \
+php7.3-bcmath php7.3-mbstring php7.3-xml php7.3-zip
 
 #EXTRA STUFF, if need redis,memcached, etc
-RUN apt-get install -y php7.0-redis
+RUN apt-get install -y php7.3-redis
 
 #For php tools
 RUN apt-get install zip unzip git curl -yqq
@@ -68,16 +68,16 @@ COPY ./config/nginx-modules.conf /etc/nginx/modules.conf
 COPY ./config/fastcgi_params /etc/nginx/fastcgi_params
 RUN mkdir -p /etc/nginx/sites-enabled/
 COPY ./config/localhost.conf /etc/nginx/sites-enabled/localhost.conf
-COPY ./config/php.ini /etc/php/7.0/fpm/php.ini
+COPY ./config/php.ini /etc/php/7.3/fpm/php.ini
 
 #8: SupervisorD Configuration
 COPY ./config/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
 #9: PHP-FPM Configuration
 RUN mkdir -p /run/php &&\
-    sed -i "s|;daemonize = yes|daemonize = no|"                     /etc/php/7.0/fpm/php-fpm.conf && \
-    sed -i "s|;date.timezone =|date.timezone = America\/Sao_Paulo|" /etc/php/7.0/cli/php.ini && \
-    sed -i "s|;date.timezone =|date.timezone = America\/Sao_Paulo|" /etc/php/7.0/fpm/php.ini && \
+    sed -i "s|;daemonize = yes|daemonize = no|"                     /etc/php/7.3/fpm/php-fpm.conf && \
+    sed -i "s|;date.timezone =|date.timezone = America\/Sao_Paulo|" /etc/php/7.3/cli/php.ini && \
+    sed -i "s|;date.timezone =|date.timezone = America\/Sao_Paulo|" /etc/php/7.3/fpm/php.ini && \
     # Xdebug configuration
     mkdir -p /etc/php/mods-available && \
     echo "zend_extension=xdebug.so"     >> /etc/php/mods-available/xdebug.ini && \
@@ -89,8 +89,8 @@ RUN mkdir -p /run/php &&\
     echo "xdebug.remote_autostart=1"    >> /etc/php/mods-available/xdebug.ini && \
     echo "xdebug.remote_connect_back=1" >> /etc/php/mods-available/xdebug.ini && \
     # Enable Xdebug
-    ln -nfs /etc/php/mods-available/xdebug.ini /etc/php/7.0/fpm/conf.d/20-xdebug.ini && \
-    ln -nfs /etc/php/mods-available/xdebug.ini /etc/php/7.0/cli/conf.d/20-xdebug.ini
+    ln -nfs /etc/php/mods-available/xdebug.ini /etc/php/7.3/fpm/conf.d/20-xdebug.ini && \
+    ln -nfs /etc/php/mods-available/xdebug.ini /etc/php/7.3/cli/conf.d/20-xdebug.ini
 
 RUN mkdir -p /var/www && \
     chown -R www-data:www-data /var/www/ && \
